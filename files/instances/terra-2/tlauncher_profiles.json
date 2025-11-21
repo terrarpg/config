@@ -1,0 +1,25 @@
+{
+  "userSet": {
+    "selected": {
+      "username": "WW_DJY",
+      "type": "plain"
+    },
+    "list": [
+      {
+        "username": "WW_DJY",
+        "uuid": "f69f2e36c22b331d8d23332f1ef03b39",
+        "elySkins": true,
+        "type": "plain"
+      },
+      {
+        "id": 5308813,
+        "username": "WW_DJY",
+        "displayName": "WW_DJY",
+        "uuid": "dfabfaa4-338e-4c04-9ab1-5390dc6a8b68",
+        "registeredAt": 1720452985,
+        "accessToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjE3NjMzMDUzNDUsInN1YiI6ImVseXw1MzA4ODEzIiwiY2xpZW50X2lkIjoidGxhdW5jaGVyIiwic2NvcGUiOiJvYnRhaW5fb3duX2FjY291bnRfaW5mbyBtaW5lY3JhZnRfc2VydmVyX3Nlc3Npb24ifQ._2Pyd-U5OefH_ab43XI0XWVhcczV1XAx6yB8xAJ4cuHO2wqnVA5HQkHJuaHaDiwPR_gofAIdMhh0TvTFLnW1HA",
+        "type": "ely"
+      }
+    ]
+  }
+}
