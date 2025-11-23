@@ -1,10 +1,10 @@
   {
     "instance": {
-      "name": "Terra-1",
+      "name": "Terra-2",
       "url": "https://config-ryafq.fly.dev/files/?instance=Terra-1",
       "loader": {
-        "minecraft_version": "1.21.4",
-        "loader_type": "vanilla",
+        "minecraft_version": "1.21.1",
+        "loader_type": "forge",
         "loader_version": "latest"
       },
       "verify": true,
@@ -20,8 +20,8 @@
       "whitelistActive": false,
       "status": {
         "nameServer": "Terra-Survival-World",
-        "ip": "127.0.0.1",
-        "port": 25565
+        "ip": "91.197.6.16:26710",
+        "port": 26710
       }
     }
   }
