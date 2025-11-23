@@ -1,7 +1,7 @@
 {
   "instance": {
     "name": "Terra-1",
-    "url": "http://localhost:3000/files/?instance=Terra-1",
+    "url": "https://config-ryafq.fly.dev/files/?instance=Terra-1",
 
     "loader": {
       "minecraft_version": "1.21.4",
