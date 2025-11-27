@@ -1,5 +1,6 @@
-  {
-    "instance": {
+{
+  "instances": [
+    {
       "name": "Terra-2",
       "url": "https://config-ryafq.fly.dev/files/?instance=Terra-1",
       "loader": {
@@ -23,5 +24,28 @@
         "ip": "91.197.6.16:26710",
         "port": 26710
       }
+    },
+
+    {
+      "name": "Terra-1",
+      "url": "https://config-ryafq.fly.dev/files/?instance=Terra-1",
+      "loader": {
+        "minecraft_version": "1.21.4",
+        "loader_type": "vanilla",
+        "loader_version": "latest"
+      },
+      "verify": true,
+      "ignored": [
+        "config",
+        "logs"
+      ],
+      "whitelist": [],
+      "whitelistActive": false,
+      "status": {
+        "nameServer": "Terra3",
+        "ip": "91.197.6.16:26710",
+        "port": 26710
+      }
     }
-  }
+  ]
+}
