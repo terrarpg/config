@@ -2,7 +2,7 @@
   "instances": [
     {
       "name": "Terra-2",
-      "url": "https://config-ryafq.fly.dev/files/?instance=Terra-1",
+      "url": "https://config-ryafq.fly.dev/files/?instance=Terra-2",
       "loader": {
         "minecraft_version": "1.21.1",
         "loader_type": "forge",
