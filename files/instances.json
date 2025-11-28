@@ -1,28 +1,29 @@
 {
-  "terra-2": {
-    "name": "terra-2",
-    "url": "https://config-abp9.onrender.com/files?instance=terra-2",
-    "loadder": {
-      "minecraft_version": "1.21.1",
-      "loadder_type": "forge",
-      "loadder_version": "latest"
-    },
-    "verify": true,
-    "ignored": [
-      "config",
-      "logs",
-      "resourcepacks",                                                                            
-      "options.txt",
-      "optionsof.txt"
-    ],
-    "whitelist": [
-      "Luuxis"
-    ],
-    "whitelistActive": false,
-    "status": {
-      "nameServer": "PokeMoonX",
-      "ip": "91.197.6.16:26710",
-      "port": 26710
+  "instances": [
+    {
+      "name": "terra-2",
+      "url": "https://config-abp9.onrender.com/files?instance=terra-2",
+      "loadder": {
+        "minecraft_version": "1.21.1",
+        "loadder_type": "forge",
+        "loadder_version": "latest"
+      },
+      "verify": true,
+      "ignored": [
+        "config",
+        "logs",
+        "resourcepacks",
+        "options.txt",
+        "optionsof.txt"
+      ],
+      "whitelist": [
+        "Luuxis"
+      ],
+      "whitelistActive": false,
+      "status": {
+        "nameServer": "PokeMoonX",
+        "ip": "91.197.6.16:26710",
+        "port": 26710
       }
     }
   ]
