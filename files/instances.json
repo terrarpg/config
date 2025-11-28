@@ -3,10 +3,10 @@
     {
       "name": "Terra-2",
       "url": "https://config-ryafq.fly.dev/files/?instance=Terra-2",
-      "loader": {
+      "loadder": {
         "minecraft_version": "1.21.1",
-        "loader_type": "forge",
-        "loader_version": "52.0.20"
+        "loadder_type": "forge",
+        "loadder_version": "52.0.20"
       },
       "verify": true,
       "ignored": [
