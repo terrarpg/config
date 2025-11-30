@@ -20,9 +20,9 @@
     ],
     "whitelistActive": false,
     "status": {
-      "nameServer": "ZENDARIOM",
-      "ip": "91.197.6.16:26710",
-      "port": 26710
+    "nameServer": "ZENDARIOM",
+    "ip": "91.197.6.16:26710",
+    "port": 26710
     }
   }
 }
