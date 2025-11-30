@@ -20,9 +20,9 @@
     ],
     "whitelistActive": false,
     "status": {
-      "nameServer": "PokeMoonX",
-      "ip": "91.197.6.112",
-      "port": 25630
+      "nameServer": "ZENDARIOM",
+      "ip": "91.197.6.16:26710",
+      "port": 26710
     }
   }
 }
