@@ -129,11 +129,94 @@ app.get('/instances', (req, res) => {
     }
 });
 
+// NOUVELLE ROUTE: Télécharger depuis les serveurs officiels (proxy)
+app.get('/proxy/download', async (req, res) => {
+    try {
+        const { url, filename } = req.query;
+        
+        if (!url) {
+            return res.status(400).json({ error: 'URL manquante' });
+        }
+        
+        console.log(`🌐 Proxy download: ${url}`);
+        
+        // Utiliser le bon module selon le protocole
+        const httpModule = url.startsWith('https://') ? require('https') : require('http');
+        
+        httpModule.get(url, (response) => {
+            if (response.statusCode !== 200) {
+                res.status(response.statusCode).json({ 
+                    error: `Erreur ${response.statusCode}` 
+                });
+                return;
+            }
+            
+            // Définir les headers
+            const contentType = response.headers['content-type'];
+            if (contentType) {
+                res.set('Content-Type', contentType);
+            }
+            
+            if (filename) {
+                res.set('Content-Disposition', `attachment; filename="${filename}"`);
+            }
+            
+            // Streamer la réponse
+            response.pipe(res);
+            
+        }).on('error', (error) => {
+            console.error('❌ Erreur proxy:', error);
+            res.status(500).json({ error: 'Erreur proxy: ' + error.message });
+        });
+        
+    } catch (error) {
+        console.error('Erreur proxy:', error);
+        res.status(500).json({ error: 'Erreur proxy' });
+    }
+});
+
+// NOUVELLE ROUTE: API pour obtenir les métadonnées des versions
+app.get('/api/official/versions', async (req, res) => {
+    try {
+        const response = await fetch('https://launchermeta.mojang.com/mc/game/version_manifest.json');
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        console.error('Erreur API versions:', error);
+        res.status(500).json({ error: 'Erreur API versions' });
+    }
+});
+
+// NOUVELLE ROUTE: API pour Fabric
+app.get('/api/fabric/versions', async (req, res) => {
+    try {
+        const response = await fetch('https://meta.fabricmc.net/v2/versions');
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        console.error('Erreur API Fabric:', error);
+        res.status(500).json({ error: 'Erreur API Fabric' });
+    }
+});
+
+// NOUVELLE ROUTE: API pour Forge
+app.get('/api/forge/versions', async (req, res) => {
+    try {
+        const response = await fetch('https://files.minecraftforge.net/net/minecraftforge/forge/maven-metadata.json');
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        console.error('Erreur API Forge:', error);
+        res.status(500).json({ error: 'Erreur API Forge' });
+    }
+});
+
 app.listen(port, () => {
     console.log(`=== Terra File Server Démaré ===`);
     console.log(`URL: http://localhost:${port}`);
     console.log(`Dossier instances: ${path.join(__dirname, 'files', 'instances')}`);
     console.log(`Mode: SCAN COMPLET - Tous les fichiers servis`);
+    console.log(`Proxy actif pour les téléchargements officiels`);
     console.log(`===========================================`);
     
     // Afficher les instances disponibles au démarrage
