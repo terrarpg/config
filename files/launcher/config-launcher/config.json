@@ -1,7 +1,7 @@
 {
     "maintenance": false,
     "maintenance_message": "Le launcher est en maintenance.<br>Merci de bien vouloir essayer ultérieurement.",
-    "online": "https://serv-zendariom.azuriom.cloud/user/login",
+    "online": "https://serv-zendariom.azuriom.cloud",
     "client_id": true,
     "dataDirectory": ".Zendariom Games Launcher"
 }
