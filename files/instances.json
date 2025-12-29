@@ -21,8 +21,8 @@
     "whitelistActive": false,
     "status": {
     "nameServer": "ZENDARIOM",
-    "ip": "yon-ti-survie.aternos.me",
-    "port": 1244
+    "ip": "91.197.6.16:26710",
+    "port": 26710
     }
   }
 }
