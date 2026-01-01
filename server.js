@@ -41,12 +41,13 @@ app.get('/', (req, res) => {
         version: '3.0',
         status: 'online',
         endpoints: {
-            instances: 'GET /files/?instance=zendariom',
+            instances: 'GET /instances/list',
+            instances_alt: 'GET /files/?instance=zendariom',
             file_download: 'GET /files/instances/zendariom/*',
             status: 'GET /status',
             health: 'GET /health'
         },
-        documentation: 'Ce serveur fournit la configuration pour le launcher Zendariom'
+        documentation: 'Ce serveur fournit la configuration pour le launcher Zendariom. Compatible minecraft-java-core'
     });
 });
 
@@ -127,20 +128,19 @@ async function scanDirectory(dir, baseUrl, basePath = '') {
     return results;
 }
 
-// Route PRINCIPALE pour les instances - FORMAT EXACT pour minecraft-java-core
-app.get('/files/', async (req, res) => {
-    const instanceName = req.query.instance || 'zendariom';
+// ROUTE PRINCIPALE pour minecraft-java-core - FORMAT EXACT
+app.get('/instances/list', async (req, res) => {
     const host = req.get('host');
     const protocol = req.protocol;
     
-    console.log(`📋 Configuration demandée pour: ${instanceName} (Client: ${req.headers['user-agent']})`);
+    console.log(`📋 Configuration demandée via /instances/list (Format standard)`);
     
     try {
-        const instancePath = path.join(__dirname, 'files', 'instances', instanceName);
+        const instancePath = path.join(__dirname, 'files', 'instances', 'zendariom');
         
         // Vérifier si l'instance existe
         if (!fs.existsSync(instancePath)) {
-            console.log(`⚠️ Instance ${instanceName} non trouvée, création...`);
+            console.log(`⚠️ Instance zendariom non trouvée, création...`);
             fs.mkdirSync(instancePath, { recursive: true });
             
             // Créer la structure de base
@@ -164,9 +164,9 @@ app.get('/files/', async (req, res) => {
         // Configuration EXACTE attendue par minecraft-java-core
         const response = [
             {
-                name: instanceName,
+                name: "zendariom",
                 status: "online",
-                url: `https://launchermeta.mojang.com`, // IMPORTANT: URL Mojang officielle
+                url: "https://launchermeta.mojang.com", // IMPORTANT: URL Mojang officielle
                 whitelistActive: false,
                 whitelist: [],
                 
@@ -185,14 +185,16 @@ app.get('/files/', async (req, res) => {
                     "assets/**",
                     "libraries/**",
                     "versions/1.20.1.jar",
-                    "versions/1.20.1.json"
+                    "versions/1.20.1.json",
+                    "versions/1.20.1-forge-47.2.0.json"
                 ],
                 
                 // Métadonnées supplémentaires
                 metadata: {
                     description: "Serveur Zendariom",
                     icon: `${protocol}://${host}/icon.png`,
-                    background: `${protocol}://${host}/background.jpg`
+                    background: `${protocol}://${host}/background.jpg`,
+                    launcher_compatible: true
                 }
             }
         ];
@@ -203,10 +205,10 @@ app.get('/files/', async (req, res) => {
     } catch (error) {
         console.error('❌ Erreur configuration:', error);
         
-        // Réponse d'urgence en cas d'erreur
+        // Réponse d'urgence en cas d'erreur - FORMAT MINIMUM VALIDE
         res.json([
             {
-                name: instanceName,
+                name: "zendariom",
                 status: "online",
                 url: "https://launchermeta.mojang.com",
                 whitelistActive: false,
@@ -217,10 +219,26 @@ app.get('/files/', async (req, res) => {
                     loadder_version: "47.2.0"
                 },
                 files: [],
-                ignored: ["assets/**", "libraries/**", "versions/**"]
+                ignored: [
+                    "assets/**",
+                    "libraries/**",
+                    "versions/**",
+                    "*.jar",
+                    "*.json"
+                ]
             }
         ]);
     }
+});
+
+// Route ALTERNATIVE pour compatibilité
+app.get('/files/', async (req, res) => {
+    const instanceName = req.query.instance || 'zendariom';
+    
+    console.log(`📋 Configuration demandée via /files/ (Ancien format)`);
+    
+    // Rediriger vers la nouvelle route
+    res.redirect('/instances/list');
 });
 
 // Route pour télécharger les fichiers personnalisés
@@ -229,7 +247,7 @@ app.get('/files/instances/:instance/*', async (req, res) => {
     const filePath = req.params[0];
     const localPath = path.join(__dirname, 'files', 'instances', instanceName, filePath);
     
-    console.log(`📥 Téléchargement demandé: ${filePath}`);
+    console.log(`📥 Téléchargement demandé: ${filePath} (Instance: ${instanceName})`);
     
     // Vérifier si c'est un chemin valide
     if (filePath.includes('..')) {
@@ -239,10 +257,25 @@ app.get('/files/instances/:instance/*', async (req, res) => {
     // Vérifier l'existence du fichier
     if (!fs.existsSync(localPath)) {
         console.log(`❌ Fichier non trouvé: ${filePath}`);
+        
+        // Si c'est un fichier Minecraft, indiquer qu'il doit être téléchargé depuis Mojang
+        if (filePath.includes('assets/') || filePath.includes('libraries/') || filePath.includes('versions/')) {
+            return res.status(404).json({
+                error: 'Fichier Minecraft officiel',
+                message: 'Ce fichier doit être téléchargé depuis les serveurs Mojang officiels',
+                path: filePath,
+                official_urls: {
+                    assets: 'https://resources.download.minecraft.net',
+                    libraries: 'https://libraries.minecraft.net',
+                    versions: 'https://launcher.mojang.com'
+                }
+            });
+        }
+        
         return res.status(404).json({
             error: 'Fichier non trouvé',
             path: filePath,
-            suggestion: 'Ce fichier doit être téléchargé depuis les serveurs officiels Minecraft'
+            local_path: localPath
         });
     }
     
@@ -295,7 +328,8 @@ app.get('/files/instances/:instance/*', async (req, res) => {
                 'Accept-Ranges': 'bytes',
                 'Content-Length': chunksize,
                 'Content-Type': contentType,
-                'Cache-Control': 'public, max-age=3600'
+                'Cache-Control': 'public, max-age=3600',
+                'ETag': `"${stats.size}-${stats.mtime.getTime()}"`
             });
             
             const stream = fs.createReadStream(localPath, { start, end });
@@ -312,7 +346,8 @@ app.get('/files/instances/:instance/*', async (req, res) => {
                 'Content-Length': stats.size,
                 'Content-Type': contentType,
                 'Cache-Control': 'public, max-age=3600',
-                'ETag': `"${stats.size}-${stats.mtime.getTime()}"`
+                'ETag': `"${stats.size}-${stats.mtime.getTime()}"`,
+                'Last-Modified': stats.mtime.toUTCString()
             });
             
             const stream = fs.createReadStream(localPath);
@@ -328,7 +363,8 @@ app.get('/files/instances/:instance/*', async (req, res) => {
         console.error(`❌ Erreur lors du service de ${filePath}:`, error);
         res.status(500).json({
             error: 'Erreur interne',
-            message: error.message
+            message: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 });
@@ -359,7 +395,8 @@ app.post('/upload/:instance/*', express.raw({ limit: '100mb' }), (req, res) => {
         success: true,
         path: filePath,
         size: stats.size,
-        url: `https://${req.get('host')}/files/instances/${instanceName}/${filePath}`
+        url: `https://${req.get('host')}/files/instances/${instanceName}/${filePath}`,
+        sha1: crypto.createHash('sha1').update(req.body).digest('hex')
     });
 });
 
@@ -397,7 +434,8 @@ app.get('/list/:instance', (req, res) => {
                     path: relativePath,
                     type: 'file',
                     size: stats.size,
-                    modified: stats.mtime
+                    modified: stats.mtime,
+                    extension: path.extname(item)
                 });
             }
         }
@@ -406,6 +444,25 @@ app.get('/list/:instance', (req, res) => {
     }
     
     res.json(listFiles(instancePath));
+});
+
+// Route TEST pour vérifier la configuration
+app.get('/test/config', (req, res) => {
+    res.json({
+        test: 'Configuration server',
+        timestamp: new Date().toISOString(),
+        endpoints: [
+            { method: 'GET', path: '/instances/list', description: 'Configuration principale pour le launcher' },
+            { method: 'GET', path: '/files/instances/zendariom/*', description: 'Téléchargement de fichiers' },
+            { method: 'GET', path: '/status', description: 'État du serveur' },
+            { method: 'GET', path: '/health', description: 'Santé du serveur' }
+        ],
+        expected_by_launcher: {
+            route: '/instances/list',
+            format: 'JSON array with instance objects',
+            required_fields: ['name', 'status', 'url', 'loadder', 'files', 'ignored']
+        }
+    });
 });
 
 // Route pour les erreurs 404
@@ -420,11 +477,13 @@ app.use('*', (req, res) => {
             home: 'GET /',
             health: 'GET /health',
             status: 'GET /status',
-            instances: 'GET /files/?instance=zendariom',
+            instances: 'GET /instances/list',
             download: 'GET /files/instances/zendariom/*',
+            test: 'GET /test/config',
             list_files: 'GET /list/zendariom',
             upload: 'POST /upload/zendariom/*'
-        }
+        },
+        timestamp: new Date().toISOString()
     });
 });
 
@@ -464,38 +523,47 @@ function createDirectoryStructure() {
     if (!fs.existsSync(readmePath)) {
         fs.writeFileSync(readmePath, 'Placez vos mods .jar dans ce dossier\nIls seront automatiquement détectés par le launcher.');
     }
+    
+    // Créer un fichier de configuration exemple
+    const configExample = path.join(__dirname, 'files', 'instances', 'zendariom', 'config', 'example-config.txt');
+    if (!fs.existsSync(configExample)) {
+        fs.writeFileSync(configExample, 'Fichier de configuration exemple\nCe dossier contient les configurations des mods.');
+    }
 }
 
 // Démarrer le serveur
 const server = app.listen(port, () => {
     createDirectoryStructure();
     
-    console.log(`
+    const banner = `
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║                      SERVEUR ZENDARIOM V3.0 - COMPLET                       ║
-║                    COMPATIBLE minecraft-java-core                           ║
+║                     SERVEUR ZENDARIOM V3.1 - COMPLET                         ║
+║                   COMPATIBLE minecraft-java-core 100%                        ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-📡 Serveur démarré sur le port: ${port}
+📡 Serveur démarré sur: http://localhost:${port}
 🌐 URL publique: http://localhost:${port}
+🔗 URL configuration: http://localhost:${port}/instances/list
 🕐 Heure: ${new Date().toLocaleString()}
 
 🎯 FONCTIONNALITÉS PRINCIPALES:
    ✅ Compatibilité totale avec minecraft-java-core
-   ✅ Format JSON EXACT attendu par le launcher
-   ✅ Support des téléchargements partiels (Range requests)
-   ✅ Calcul automatique des hash SHA1
-   ✅ Gestion des fichiers personnalisés (mods, configs, etc.)
-   ✅ Fichiers Minecraft officiels ignorés (téléchargés depuis Mojang)
+   ✅ Route /instances/list - FORMAT EXACT attendu
+   ✅ Fichiers Minecraft ignorés (téléchargés depuis Mojang)
+   ✅ Fichiers personnalisés servis localement
+   ✅ Support Range requests (téléchargements partiels)
+   ✅ Calcul automatique SHA1
+   ✅ Structure de dossiers automatique
 
 🔗 ENDPOINTS DISPONIBLES:
    GET  /                           → Page d'accueil
    GET  /health                     → Vérification santé
    GET  /status                     → État du serveur
-   GET  /files/?instance=zendariom  → CONFIGURATION PRINCIPALE (pour le launcher)
+   GET  /instances/list            → 🔥 CONFIGURATION POUR LE LAUNCHER
    GET  /files/instances/zendariom/* → Téléchargement fichiers
-   GET  /list/zendariom             → Liste fichiers (admin)
-   POST /upload/zendariom/*         → Upload fichiers (admin)
+   GET  /test/config               → Test de configuration
+   GET  /list/zendariom            → Liste fichiers (admin)
+   POST /upload/zendariom/*        → Upload fichiers (admin)
 
 📁 STRUCTURE DE DOSSIERS:
    • files/instances/zendariom/mods/          → Mods .jar
@@ -505,12 +573,15 @@ const server = app.listen(port, () => {
    • files/instances/zendariom/versions/      → Versions personnalisées
 
 ⚠️  IMPORTANT POUR LE LAUNCHER:
+   • Le launcher DOIT utiliser: http://localhost:${port}/instances/list
    • Les fichiers Minecraft (assets, libraries) sont IGNORÉS
-   • Le launcher les télécharge depuis les serveurs Mojang
-   • Seuls les fichiers personnalisés sont servis par ce serveur
+   • Ils seront téléchargés depuis les serveurs Mojang
+   • Votre serveur ne sert QUE les fichiers personnalisés
 
-🚀 Prêt à recevoir les requêtes du launcher...
-`);
+✅ Prêt à recevoir les requêtes du launcher...
+`;
+    
+    console.log(banner);
 });
 
 // Gestion propre de l'arrêt
