@@ -1,7 +1,8 @@
 {
     "maintenance": false,
     "maintenance_message": "Le launcher est en maintenance.<br>Merci de bien vouloir essayer ultérieurement.",
-    "online": "https://serv-zendariom.azuriom.cloud",
-    "client_id": true,
+    "auth_methods": ["microsoft", "elyby"],
+    "microsoft_client_id": true,
+    "elyby_url": "https://authserver.ely.by",
     "dataDirectory": ".Zendariom Games Launcher"
 }
