@@ -1,14 +1,13 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
-const crypto = require('crypto');
 const app = express();
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
-// Middleware CORS complet
+// Middleware CORS
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Range');
     
     if (req.method === 'OPTIONS') {
@@ -18,159 +17,146 @@ app.use((req, res, next) => {
     next();
 });
 
-// Route RACINE - Page d'accueil
+// Logs
+app.use((req, res, next) => {
+    console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
+    next();
+});
+
+// Route principale
 app.get('/', (req, res) => {
     res.json({
-        name: 'Zendariom Configuration Server',
-        version: '3.0',
+        name: 'Zendariom Config Server',
         status: 'online',
         endpoints: {
-            instances: 'GET /instances/list',
-            instances_alt: 'GET /files/?instance=zendariom',
-            file_download: 'GET /files/instances/zendariom/*',
-            status: 'GET /status',
-            health: 'GET /health'
-        },
-        documentation: 'Ce serveur fournit la configuration pour le launcher Zendariom. Compatible minecraft-java-core'
+            config: '/instances/list',
+            health: '/health',
+            test: '/test'
+        }
     });
 });
 
-// Route STATUS
-app.get('/status', (req, res) => {
-    res.json({
-        status: 'online',
-        server: 'Zendariom Config Server',
-        version: '3.0',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime()
-    });
-});
-
-// Route HEALTH
+// Health check
 app.get('/health', (req, res) => {
-    res.json({
-        status: 'healthy',
-        timestamp: new Date().toISOString()
-    });
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Route INSTANCES/LIST - Compatible avec minecraft-java-core
+// Configuration PRINCIPALE pour le launcher
 app.get('/instances/list', (req, res) => {
-    console.log('📋 Configuration demandée via /instances/list');
+    console.log('📋 Configuration demandée par le launcher');
     
-    res.json([
+    const response = [
         {
             name: "zendariom",
             status: "online",
-            url: "https://launchermeta.mojang.com",
+            url: "https://launchermeta.mojang.com", // IMPORTANT: URL Mojang officielle
             whitelistActive: false,
             whitelist: [],
             
-            // Configuration du loader
             loadder: {
                 minecraft_version: "1.20.1",
                 loadder_type: "forge",
                 loadder_version: "47.2.0"
             },
             
-            // Fichiers personnalisés (à adapter selon vos besoins)
-            files: [],
-            
-            // Fichiers à ignorer (le launcher les télécharge depuis Mojang)
-            ignored: [
-                "assets/**",
-                "libraries/**",
-                "versions/1.20.1.jar",
-                "versions/1.20.1.json"
+            // Liste des fichiers ESSENTIELS
+            files: [
+                // Client Minecraft
+                {
+                    type: "client",
+                    folder: "versions/1.20.1/",
+                    name: "1.20.1.jar",
+                    url: "https://launcher.mojang.com/v1/objects/15c777e2cfe0556eef19aab534d186fd0c5f8c0e/client.jar",
+                    path: "versions/1.20.1/1.20.1.jar"
+                },
+                // Forge installer
+                {
+                    type: "forge",
+                    folder: "versions/",
+                    name: "forge-installer.jar",
+                    url: "https://maven.minecraftforge.net/net/minecraftforge/forge/1.20.1-47.2.0/forge-1.20.1-47.2.0-installer.jar",
+                    path: "versions/forge-installer.jar"
+                },
+                // Natives Windows
+                {
+                    type: "natives",
+                    folder: "versions/1.20.1/natives/",
+                    name: "natives-windows.jar",
+                    url: "https://launcher.mojang.com/v1/objects/866e3ed62047b8e2cdf0d7e0f6b1a7a35f8f3cc5/natives-windows.jar",
+                    path: "versions/1.20.1/natives/natives-windows.jar"
+                }
             ],
             
-            // Métadonnées optionnelles
-            metadata: {
-                description: "Serveur Zendariom",
-                icon: "https://config-20dh.onrender.com/icon.png",
-                background: "https://config-20dh.onrender.com/background.jpg"
-            }
+            // Fichiers à ignorer
+            ignored: []
         }
-    ]);
+    ];
+    
+    console.log(`✅ Configuration envoyée: ${response[0].files.length} fichiers définis`);
+    res.json(response);
 });
 
-// Route alternative pour les fichiers
-app.get('/files/', (req, res) => {
-    const instanceName = req.query.instance || 'zendariom';
-    console.log(`📋 Configuration alternative pour: ${instanceName}`);
-    
-    // Réponse similaire à /instances/list pour compatibilité
-    res.json([
-        {
-            name: instanceName,
-            status: "online",
-            url: "https://launchermeta.mojang.com",
-            whitelistActive: false,
-            whitelist: [],
-            loadder: {
-                minecraft_version: "1.20.1",
-                loadder_type: "forge",
-                loadder_version: "47.2.0"
-            },
-            files: [],
-            ignored: ["assets/**", "libraries/**"]
-        }
-    ]);
-});
-
-// Route pour télécharger les fichiers
-app.get('/files/instances/:instance/*', (req, res) => {
-    const instanceName = req.params.instance;
-    const filePath = req.params[0];
-    
-    console.log(`📥 Demande fichier: ${filePath} pour ${instanceName}`);
-    
-    // Ici, vous pouvez ajouter la logique pour servir des fichiers personnalisés
-    // Pour l'instant, on retourne un message d'information
+// Route de test
+app.get('/test', (req, res) => {
     res.json({
-        info: "Endpoint de téléchargement de fichiers",
-        instance: instanceName,
-        file: filePath,
-        note: "Cette route sert les fichiers personnalisés (mods, configs, etc.)"
+        message: 'Serveur fonctionnel',
+        server: 'Render.com',
+        url: 'https://config-20dh.onrender.com',
+        time: new Date().toISOString()
     });
 });
 
-// Route 404 pour les autres requêtes
-app.use((req, res) => {
+// Route pour fichiers personnalisés (mods, configs)
+app.get('/files/instances/:instance/*', (req, res) => {
+    const { instance, '0': filePath } = req.params;
+    
+    console.log(`📥 Demande fichier: ${filePath}`);
+    
+    // Rediriger les fichiers Minecraft vers Mojang
+    if (filePath.includes('assets/') || filePath.includes('libraries/')) {
+        return res.status(404).json({
+            error: 'Fichier Minecraft',
+            message: 'Ce fichier doit être téléchargé depuis les serveurs Mojang',
+            redirectToMojang: true
+        });
+    }
+    
+    // Pour fichiers personnalisés (à implémenter si nécessaire)
+    res.status(404).json({ error: 'Fichier non trouvé' });
+});
+
+// 404 handler
+app.use('*', (req, res) => {
     res.status(404).json({
         error: 'Route non trouvée',
-        path: req.url,
-        available_routes: [
-            'GET /',
-            'GET /instances/list',
-            'GET /files/?instance=zendariom',
-            'GET /files/instances/zendariom/*',
-            'GET /status',
-            'GET /health'
-        ]
+        path: req.originalUrl,
+        available: ['/', '/health', '/instances/list', '/test']
     });
 });
 
-// Gestionnaire d'erreurs global
-app.use((error, req, res, next) => {
-    console.error('Erreur:', error);
-    res.status(500).json({
-        error: 'Erreur interne du serveur',
-        message: error.message
-    });
+// Error handler
+app.use((err, req, res, next) => {
+    console.error('🔥 Erreur:', err);
+    res.status(500).json({ error: 'Erreur interne' });
 });
 
 // Démarrer le serveur
-app.listen(port, () => {
+app.listen(PORT, () => {
     console.log(`
-╔═══════════════════════════════════════════════════╗
-║     SERVEUR ZENDARIOM V3.0 - EN LIGNE            ║
-╚═══════════════════════════════════════════════════╝
-📡 Port: ${port}
-🌐 URL: https://config-20dh.onrender.com
-✅ Prêt à recevoir les requêtes du launcher
+╔══════════════════════════════════════════════╗
+║      SERVEUR ZENDARIOM - RENDER.COM         ║
+║      URL: https://config-20dh.onrender.com  ║
+╚══════════════════════════════════════════════╝
+
+📡 Port: ${PORT}
+🌐 URL publique: https://config-20dh.onrender.com
+✅ Prêt à recevoir les requêtes...
 `);
 });
 
-// Exporter pour les tests
+// Heartbeat pour Render
+setInterval(() => {
+    console.log('[HEARTBEAT] Serveur actif');
+}, 300000);
+
 module.exports = app;
