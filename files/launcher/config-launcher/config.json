@@ -1,9 +1,7 @@
 {
     "maintenance": false,
     "maintenance_message": "Le launcher est en maintenance.<br>Merci de bien vouloir essayer ultérieurement.",
-    "auth_method": "elyby",
-    "elyby_url": "https://authserver.ely.by",
-    "dataDirectory": ".Zendariom Games Launcher",
-    "news_url": "https://terrarpg.github.io/config/files/launcher/news-launcher/news.json",
-    "instances_url": "https://terrarpg.github.io/zendarion-config/files/instances.json"
+    "online": "https://authserver.ely.by/api/auth/",
+    "client_id": true,
+    "dataDirectory": ".Zendariom Games Launcher"
 }
