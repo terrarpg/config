@@ -1,7 +1,7 @@
 {
   "zendariom": {
     "name": "zendariom",
-    "url": "https://config-20dh.onrender.com/files?instance=zendariom",
+    "url": "https://zendarion-config.onrender.com/files?instance=zendariom",
     "loadder": {
       "minecraft_version": "1.20.1",
       "loadder_type": "Forge",
@@ -20,9 +20,15 @@
     ],
     "whitelistActive": false,
     "status": {
-    "nameServer": "ZENDARIOM",
-    "ip": "91.197.6.16",
-    "port": 26710
+      "online": true,
+      "nameServer": "ZENDARIOM",
+      "motd": "Serveur Zendariom",
+      "players": {
+        "online": 0,
+        "max": 100
+      },
+      "ip": "91.197.6.16",
+      "port": 26710
     }
   }
 }
