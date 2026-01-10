@@ -20,15 +20,9 @@
     ],
     "whitelistActive": false,
     "status": {
-      "online": true,
-      "nameServer": "ZENDARIOM",
-      "motd": "Serveur Zendariom",
-      "players": {
-        "online": 0,
-        "max": 100
-      },
-      "ip": "91.197.6.16",
-      "port": 26710
+    "nameServer": "ZENDARIOM",
+    "ip": "91.197.6.16",
+    "port": 26710
     }
   }
 }
